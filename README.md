@@ -1,6 +1,6 @@
 # Asterisk
 
-<h3>Create Rest Interface User<h3>
+<h3>Create Rest Interface User</h3>
 First create a Rest Interface User
 Add a user in the ari_additional.conf
 (It is in /etc/asterisk/ )
