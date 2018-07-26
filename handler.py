@@ -1,15 +1,16 @@
 import ari
 import logging
 import urllib2, json
-import sqlite3
-import MySQLdb
+#import sqllite3
 from hubspot.connection import APIKey, PortalConnection
 from hubspot.contacts import Contact
 from hubspot.contacts import save_contacts
 import datetime
 
+'''
+All errors are logged in a file called Handler.log
+'''
 logging.basicConfig(filename='Handler.log',level=logging.ERROR)
-
 client = ari.connect('http://192.168.20.195:8088/', 'arvind', 'arvind')
 
 def fetch_from_db(user_name, phone_number):
@@ -64,6 +65,9 @@ def stasis_start_cb(channel_obj, ev):
         caller_number = channel.get('caller').get('number')
         channel_id = channel.get('id')
         print caller_name,caller_number,channel_id
+	'''
+	uncomment the following two lines to get connection to the established database
+	'''
         # vid, first_name, last_name, email = fetch_from_db(caller_name, caller_number)
         # save_contact_to_hub(vid,first_name,last_name,email,str(caller_number)) 
         """
