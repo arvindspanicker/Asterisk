@@ -1,0 +1,2 @@
+ERROR:root:global name 'sqllite3' is not defined
+ERROR:root:'NoneType' object is not iterable
