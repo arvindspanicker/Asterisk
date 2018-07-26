@@ -1,18 +1,18 @@
 # Asterisk
 
 <h3>Create Rest Interface User</h3>
+<pre>
 First create a Rest Interface User
 Add a user in the ari_additional.conf
 (It is in /etc/asterisk/ )
 
 Example of user in the above file:
-
 [username]
 type=user
 password=1234
 password_format=plain
 read_only=no
-
+</pre>
 
 Now add an extension.
 Go to extensions_custom.conf
@@ -31,7 +31,7 @@ where the python script would be running (remove '<' '>'):
 
 wscat -c "ws://<ipaddressofasterisk>:8088/ari/events?api_key=<username_of_registered_restuser>:password&app=<statis-app-name-in-python-script>"
 
-
+</pre>
 <h3>Installation</h3> (install all dependencies)
 ./install.sh
 
