@@ -6,6 +6,7 @@ import MySQLdb
 from hubspot.connection import APIKey, PortalConnection
 from hubspot.contacts import Contact
 from hubspot.contacts import save_contacts
+import datetime
 
 logging.basicConfig(filename='Handler.log',level=logging.ERROR)
 
@@ -29,7 +30,7 @@ def fetch_from_db(user_name, phone_number):
         else:
             logging.error('User Does Not Exist in Database')
     except Exception as e:
-        logging.error(e.message)
+        logging.error(datetime.datetime.now()+e.message)
 
 def save_contact_to_hub(vid,first_name,last_name,email,phone_number):
     ''' calls hubspot api and created a contact (if not exists) and saves it to 
@@ -44,7 +45,7 @@ def save_contact_to_hub(vid,first_name,last_name,email,phone_number):
             u'phone':unicode(phone_number,'utf-8')},))
             save_contacts(contact,connection)
     except Exception as e:
-        logging.error(e.message)
+        logging.error(datetime.datetime.now()+e.message)
  
 
 def stasis_end_cb(channel, ev):
@@ -52,19 +53,25 @@ def stasis_end_cb(channel, ev):
     """When caller cuts the call """
     print "Channel %s just left our application" % channel.json.get('name')
 
+
 def stasis_start_cb(channel_obj, ev):
     """Handler for StasisStart event"""
     """When caller starts the call """
     try:
+        ch = channel_obj.get('channel')
         channel = ev.get('channel')
         caller_name = channel.get('caller').get('name')
         caller_number = channel.get('caller').get('number')
         channel_id = channel.get('id')
         print caller_name,caller_number,channel_id
-        vid, first_name, last_name, email = fetch_from_db(caller_name, caller_number)
-        save_contact_to_hub(vid,first_name,last_name,email,str(caller_number))
+        # vid, first_name, last_name, email = fetch_from_db(caller_name, caller_number)
+        # save_contact_to_hub(vid,first_name,last_name,email,str(caller_number)) 
+        """
+        continue back to the dial plan
+        """
+        ch.continueInDialplan() 
     except Exception as e:
-        logging.error(e.message)
+        logging.error(datetime.datetime.now()+e.message)
 
 
 client.on_channel_event('StasisStart', stasis_start_cb)
