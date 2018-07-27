@@ -32,15 +32,46 @@ where the python script would be running (remove '<' '>'):
 
 wscat -c "ws://<ipaddressofasterisk>:8088/ari/events?api_key=<username_of_registered_restuser>:password&app=<statis-app-name-in-python-script>"
 </pre>
-</pre>
+
 <h2>Installing the application</h2> (with all dependencies)
-./install.sh
+Execute  ./install.sh to install the application
 
 <h3>Running the application</h3>
-./run.sh
+Execute ./run.sh to run the application
 
 To test, 
 call 3003 extension
+
+<h3>Configuration File</h3>
+<pre>
+Inside [ari-config]
+ARI_IP - IP Address of the PBX's Asterisk Rest Interface
+ARI_PORT - Port Address of the PBX's Asterisk Rest Interface
+ARI_USERNAME - The registered REST Interface User Name
+ARI_PASSWORD= - The registered REST Interface User Password
+STATIS_APP_NAME - Name of the Statis App 
+
+<b>Note</b>: The same app name should be given in the extensions for receiving the event.
+
+Inside [db-config]
+DB_IP - IP Address of the Database
+DB_USERNAME - Database Username
+DB_PASSWORD - Database Password
+DB_NAME - Database Name
+DB_FIELD_FNAME - Field name specified in the database for the first name of the user
+DB_FIELD_LNAME - Field name specified in the database for the last name of the user
+DB_FIELD_EMAIL - Field name specified in the database for the email of the user
+
+Inside [hubspot-config]
+HUBSPOT_API_KEY - API Key optained from the Hubspot Account
+APP_NAME - App Name registered in the Hubspot Account
+
+Inside [logfile-config]
+SIZE - Size of the log file
+BACKUPCOUNT - Number of log files to be kept
+LOGGERNAME - Name for the Logger
+MODE - Different Modes for Logs : DEBUG,INFO,CRITICAL,WARNING,ERROR
+
 
 
 
