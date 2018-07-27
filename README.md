@@ -34,10 +34,10 @@ wscat -c "ws://<ipaddressofasterisk>:8088/ari/events?api_key=<username_of_regist
 </pre>
 
 <h2>Installing the application</h2> (with all dependencies)
-Execute  ./install.sh to install the application
+Execute  <b>./install.sh</b> to install the application
 
 <h3>Running the application</h3>
-Execute ./run.sh to run the application
+Execute <b>./run.sh</b> to run the application
 
 To test, 
 call 3003 extension
