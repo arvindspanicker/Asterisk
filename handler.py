@@ -187,7 +187,7 @@ class AsteriskListener:
             uncomment the following two lines to get connection to the established database
             '''
             # self.fetch_from_db()
-            self.save_contact_to_hub() 
+            # self.save_contact_to_hub() 
             """
             continue back to the dial plan
             """
