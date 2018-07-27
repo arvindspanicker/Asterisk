@@ -79,7 +79,7 @@ class AsteriskListener:
             self.ari_username = self.config.get('ari-config','ARI_USERNAME')
             self.ari_password = self.config.get('ari-config','ARI_PASSWORD')
             self.statis_app_name = self.config.get('ari-config','STATIS_APP_NAME')
-            self.client = ari.connect('http://{0}:{1}/'.format(self.ari_host,self.ari_port)\
+            self.client = ari.connect('{0}:{1}/'.format(self.ari_host,self.ari_port)\
             ,self.ari_username,self.ari_password)
         except Exception as e:
             self.logger.exception("Error while obtaining ARI configuration {}".format(e.message))
