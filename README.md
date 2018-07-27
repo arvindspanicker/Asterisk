@@ -13,7 +13,7 @@ type=user
 password=<password>
 password_format=plain
 read_only=no
-</pre>
+
 
 Add an extension for receiving the calls.
 Go to extensions_custom.conf
@@ -31,7 +31,7 @@ To make sure the statis up and running, try the following command from the syste
 where the python script would be running (remove '<' '>'):
 
 wscat -c "ws://<ipaddressofasterisk>:8088/ari/events?api_key=<username_of_registered_restuser>:password&app=<statis-app-name-in-python-script>"
-
+</pre>
 </pre>
 <h2>Installing the application</h2> (with all dependencies)
 ./install.sh
