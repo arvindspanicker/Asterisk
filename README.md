@@ -1,22 +1,23 @@
 # Asterisk
+Application for linking inbound phone calls from the internal PBX system (Asterisk with FreePBX front-end) to the HubSpot Contacts API. <br>
+Please follow the steps below for setting up the application.<br>
 
-<h3>Create Rest Interface User</h3>
+<h3>Creating Rest Interface User</h3>
 <pre>
-First create a Rest Interface User
-Add a user in the ari_additional.conf
-(It is in /etc/asterisk/ )
+For REST API Authentication, add an user in the ari_additional.conf
+(file location: /etc/asterisk/ )
 
-Example of user in the above file:
+Sample:
 [username]
 type=user
-password=1234
+password=<password>
 password_format=plain
 read_only=no
 </pre>
 
-Now add an extension.
+Add an extension for receiving the calls.
 Go to extensions_custom.conf
-(It is in /etc/asterisk/)
+(file location: /etc/asterisk/)
 
 Example of extension for  calls:
 
@@ -32,10 +33,10 @@ where the python script would be running (remove '<' '>'):
 wscat -c "ws://<ipaddressofasterisk>:8088/ari/events?api_key=<username_of_registered_restuser>:password&app=<statis-app-name-in-python-script>"
 
 </pre>
-<h3>Installation</h3> (install all dependencies)
+<h2>Installing the application</h2> (with all dependencies)
 ./install.sh
 
-<h3>Run</h3>
+<h3>Running the application</h3>
 ./run.sh
 
 To test, 
