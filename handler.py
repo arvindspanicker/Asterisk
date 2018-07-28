@@ -1,4 +1,4 @@
-import ari,time,urllib2,json,datetime
+import ari,time,urllib2,json,datetime,os
 # import sqlite3
 # import MySQLdb
 from hubspot.connection import APIKey, PortalConnection
@@ -20,8 +20,8 @@ class AsteriskListener:
         '''
         Initializing class variables
         '''
-        self.log_file_name = log_file_name
-        self.conf_file_name = conf_file_name
+        self.log_file_name = os.path.join(os.getcwd(), log_file_name) 
+        self.conf_file_name = os.path.join(os.getcwd(),conf_file_name)
         self.config = ConfigParser()
         self.config.read(conf_file_name)
         self.init_logger()
