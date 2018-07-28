@@ -98,6 +98,7 @@ class AsteriskListener:
             self.fname = self.config.get('db-config','DB_FIELD_FNAME')
             self.lname = self.config.get('db-config','DB_FIELD_LNAME')
             self.email = self.config.get('db-config','DB_FIELD_EMAIL')
+            self.phone = self.config.get('db-config','DB_FIELD_PHONE')
         except Exception as e:
             self.logger.exception("Error while obtaining DB configuration. {}".format(e.message))
 
@@ -127,8 +128,9 @@ class AsteriskListener:
             uncomment below if you're using sqlite3 database and comment the above line
             '''
             # connection = sqllite3.connect(self.db_name)
-            sql_command = "SELECT id,{fname},{lname},{email} from Contacts where pnumber = \
-            {phone_number}".format(phone_number=phone_number,fname=fname,lname=lname,email=email)
+            sql_command = "SELECT id,{fname},{lname},{email} from Contacts where {pnumber} = \
+            {phone_number}".format(phone_number=phone_number,fname=fname,lname=lname,email=email,\
+            pnumber=self.phone)
             crsr = connection.cursor()
             crsr.execute(sql_command)
             ans= crsr.fetchone() 
