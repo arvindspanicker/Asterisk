@@ -1,11 +1,11 @@
 import ari,time,urllib2,json,datetime,os
-# import sqlite3
-# import MySQLdb
+import mysql.connector as mariadb 
 from hubspot.connection import APIKey, PortalConnection
 from hubspot.contacts import Contact
 from hubspot.contacts import save_contacts
 from ConfigParser import ConfigParser
-import logging,time
+import logging
+import time
 from logging.handlers import RotatingFileHandler
 
 
@@ -13,8 +13,8 @@ from logging.handlers import RotatingFileHandler
 
 class AsteriskListener:
     '''
-    Class that listens inbound phone calls from the internal PBX system (Asterisk with FreePBX front-end) 
-    and saves the contact information to the HubSpot Contacts API
+    Class that listens inbound phone calls from the internal PBX system (Asterisk with FreePBX 
+    front-end) and saves the contact information to the HubSpot Contacts API
     '''
     def __init__(self,log_file_name,conf_file_name):
         '''
@@ -64,7 +64,8 @@ class AsteriskListener:
             raise Exception('Logging Mode is not Set')
         self.handler = RotatingFileHandler(self.log_file_name,maxBytes=self.file_size, \
         backupCount=self.back_up_count)
-        self.formatter = logging.Formatter("%(asctime)s %(levelname)s %(message)s","%Y-%m-%d %H:%M:%S")
+        self.formatter = logging.Formatter("%(asctime)s %(levelname)s %(message)s",\
+        "%Y-%m-%d %H:%M:%S")
         self.handler.setFormatter(self.formatter)
         self.logger.addHandler(self.handler)
 
@@ -82,7 +83,8 @@ class AsteriskListener:
             self.client = ari.connect('{0}:{1}/'.format(self.ari_host,self.ari_port)\
             ,self.ari_username,self.ari_password)
         except Exception as e:
-            self.logger.exception("Error while obtaining ARI configuration {}".format(e.message))
+            self.logger.exception("Error while obtaining ARI configuration {}".\
+            format(e.message))
 
 
     def obtain_db_config(self):
@@ -99,8 +101,10 @@ class AsteriskListener:
             self.lname = self.config.get('db-config','DB_FIELD_LNAME')
             self.email = self.config.get('db-config','DB_FIELD_EMAIL')
             self.phone = self.config.get('db-config','DB_FIELD_PHONE')
+            self.table = self.config.get('db-config','DB_TABLE_NAME')
         except Exception as e:
-            self.logger.exception("Error while obtaining DB configuration. {}".format(e.message))
+            self.logger.exception("Error while obtaining DB configuration. {}".\
+            format(e.message))
 
 
     def obtain_hubspot_config(self):
@@ -112,25 +116,23 @@ class AsteriskListener:
             self.api_key = self.config.get('hubspot-config', 'HUBSPOT_API_KEY')
             self.app_name = self.config.get('hubspot-config','APP_NAME')
         except Exception as e:
-            self.logger.exception("Error while obtaining Hubspot configuration. {}".format(e.message))    
+            self.logger.exception("Error while obtaining Hubspot configuration. {}".\
+            format(e.message))    
 
     
     def fetch_from_db(self):
         '''
-            fetch from the database for the email and all the other details based on the incoming name
-            and number 
+            fetch from the database for the email and all the other details based on 
+            the incoming name and number 
         '''
         try:
             self.logger.debug('Inside fetch_from_db() function')
             self.obtain_db_config()
-            connection = MySQLdb.connect(self.db_host,self.db_username,self.db_password,self.db_name)
-            '''
-            uncomment below if you're using sqlite3 database and comment the above line
-            '''
-            # connection = sqllite3.connect(self.db_name)
-            sql_command = "SELECT id,{fname},{lname},{email} from Contacts where {pnumber} = \
-            {phone_number}".format(phone_number=phone_number,fname=fname,lname=lname,email=email,\
-            pnumber=self.phone)
+            connection = mariadb.connect(host = self.db_host, user = self.db_username, \
+            password = self.db_password, database = self.db_name)
+            sql_command = "SELECT id,{fname},{lname},{email} from {table} where {pnumber} = \
+            {phone_number}".format(phone_number=self.phone_number,fname=self.\
+            fname,lname=self.lname,email=self.email,pnumber=self.phone,table=self.table)
             crsr = connection.cursor()
             crsr.execute(sql_command)
             ans= crsr.fetchone() 
@@ -182,14 +184,11 @@ class AsteriskListener:
             self.ch = channel_obj.get('channel')
             self.channel = ev.get('channel')
             self.caller_name = self.channel.get('caller').get('name')
-            self.caller_number = self.channel.get('caller').get('number')
+            self.phone_number = self.channel.get('caller').get('number')
             self.channel_id = self.channel.get('id')
-            self.logger.debug('Call from Phone Number {}'.format(self.caller_number))
-            '''
-            uncomment the following two lines to get connection to the established database
-            '''
-            # self.fetch_from_db()
-            # self.save_contact_to_hub() 
+            self.logger.debug('Call from Phone Number {}'.format(self.phone_number))
+            self.fetch_from_db()
+            self.save_contact_to_hub() 
             """
             continue back to the dial plan
             """
