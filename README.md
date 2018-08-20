@@ -28,9 +28,9 @@ exten => 3003,1,NoOp()
 
 
 To make sure the statis up and running, try the following command from the system
-where the python script would be running (remove '<' '>'):
+where the python script would be running :
 
-wscat -c "ws://<ipaddressofasterisk>:8088/ari/events?api_key=<username_of_registered_restuser>:password&app=<statis-app-name-in-python-script>"
+wscat -c "ws://ipaddressofasterisk:8088/ari/events?api_key=<username_of_registered_restuser>:password&app=statis-app-name-in-python-script"
 </pre>
 
 <h2>Installing the application</h2> (with all dependencies)
