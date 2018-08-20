@@ -12,14 +12,14 @@ from logging.handlers import RotatingFileHandler
 
 
 class AsteriskListener:
-    '''
+    """
     Class that listens inbound phone calls from the internal PBX system (Asterisk with FreePBX 
     front-end) and saves the contact information to the HubSpot Contacts API
-    '''
+    """
     def __init__(self,log_file_name,conf_file_name):
-        '''
+        """
         Initializing class variables
-        '''
+        """
         self.log_file_name = os.path.join(os.getcwd(), log_file_name) 
         self.conf_file_name = os.path.join(os.getcwd(),conf_file_name)
         self.config = ConfigParser()
@@ -28,21 +28,21 @@ class AsteriskListener:
         self.init_lisener()
 
     def init_lisener(self):
-        '''
+        """
         function to initialize all the ARI configuration and create a listening event
-        '''
+        """
         self.obtain_ari_config()
         self.client.on_channel_event('StasisStart', self.stasis_start_cb)
         self.client.on_channel_event('StasisEnd', self.stasis_end_cb)
-        '''
+        """
         create this app in the extensions for statis event to occur
-        '''
+        """
         self.client.run(apps=self.statis_app_name)
 
     def init_logger(self):
-        '''
+        """
         function to initialize logging
-        '''
+        """
         self.file_size = int(self.config.get('logfile-config', 'SIZE'))
         self.back_up_count = int(self.config.get('logfile-config', 'BACKUPCOUNT'))
         self.logger_name = self.config.get('logfile-config', 'LOGGERNAME')
@@ -70,9 +70,9 @@ class AsteriskListener:
         self.logger.addHandler(self.handler)
 
     def obtain_ari_config(self):
-        '''
+        """
         function to get the configuration of ARI from the config file
-        '''
+        """
         try:
             self.logger.debug('Inside obtain_ari_config() function')      
             self.ari_host = self.config.get('ari-config', 'ARI_IP')
@@ -88,9 +88,9 @@ class AsteriskListener:
 
 
     def obtain_db_config(self):
-        '''
+        """
         function to obtain all the database configurations from the configuration file
-        '''
+        """
         try:
             self.logger.debug('Inside obtain_db_config() function')
             self.db_host = self.config.get('db-config', 'DB_IP', '127.0.0.1')
@@ -108,9 +108,9 @@ class AsteriskListener:
 
 
     def obtain_hubspot_config(self):
-        '''
+        """
         function to obtain all the configurations for the Hubspot API from the configuration file
-        '''
+        """
         try:
             self.logger.debug('Inside obtain_hubspot_config() function')
             self.api_key = self.config.get('hubspot-config', 'HUBSPOT_API_KEY')
@@ -121,10 +121,10 @@ class AsteriskListener:
 
     
     def fetch_from_db(self):
-        '''
-            fetch from the database for the email and all the other details based on 
-            the incoming name and number 
-        '''
+        """
+        fetch from the database for the email and all the other details based on 
+        the incoming name and number 
+        """
         try:
             self.logger.debug('Inside fetch_from_db() function')
             self.obtain_db_config()
@@ -147,9 +147,10 @@ class AsteriskListener:
             self.logger.exception("Error fetching user data from DB. {}".format(e.message))
 
     def save_contact_to_hub(self):
-        ''' calls hubspot api and created a contact (if not exists) and saves it to 
-            the HubSpot Account registered 
-        '''
+        """
+        calls hubspot api and created a contact (if not exists) and saves it to 
+        the HubSpot Account registered 
+        """
         try:
             self.logger.debug('Inside save_contact_to_hub() function')
             self.logger.debug("Saving contact to hub {}{}{}{}{}".format(self.vid,self.first_name,\
@@ -158,17 +159,19 @@ class AsteriskListener:
             authentication_key = APIKey(self.api_key)
             with PortalConnection(authentication_key, self.app_name) as connection:
                 contact = []
-                contact.append(Contact(vid=self.vid, email_address=unicode(self.email,'utf-8'), \
-                properties={u'lastname':unicode(self.last_name,'utf-8'), u'firstname': \
-                unicode(self.first_name,'utf-8'),u'phone':unicode(str(self.phone_number),'utf-8')},))
+                contact.append(Contact(vid=self.vid, email_address=self.email, \
+                properties={u'lastname':self.last_name, u'firstname': \
+                self.first_name,u'phone':str(self.phone_number),},))
                 save_contacts(contact,connection)
         except Exception as e:
             self.logger.exception("Error saving contact to Hubspot. {}".format(e.message))
     
 
     def stasis_end_cb(self,channel, ev):
-        """Handler for StasisEnd event"""
-        """When caller cuts the call """
+        """
+        Handler for StasisEnd event
+        When caller cuts the call 
+        """
         try:
             self.logger.debug('Inside stasis_end_cb() function')
             print "Channel %s just left our application" % self.channel.get('name')
@@ -177,8 +180,10 @@ class AsteriskListener:
 
 
     def stasis_start_cb(self,channel_obj, ev):
-        """Handler for StasisStart event"""
-        """When caller starts the call """
+        """
+        Handler for StasisStart event
+        When caller starts the call 
+        """
         try:
             self.logger.debug('Inside stasis_start_cb() function')
             self.ch = channel_obj.get('channel')
