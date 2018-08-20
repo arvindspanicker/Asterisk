@@ -62,6 +62,7 @@ DB_FIELD_FNAME - Field name specified in the database for the first name of the 
 DB_FIELD_LNAME - Field name specified in the database for the last name of the user
 DB_FIELD_EMAIL - Field name specified in the database for the email of the user
 DB_FIELD_PHONE - Field name specified in the database for the account of the user
+DB_TABLE_NAME - Table name of the saved contacts in the database 
 
 Inside [hubspot-config]
 HUBSPOT_API_KEY - API Key optained from the Hubspot Account
