@@ -7,8 +7,9 @@ from ConfigParser import ConfigParser
 import logging
 import time
 from logging.handlers import RotatingFileHandler
-
-
+from datetime import datetime
+from hubspot.contacts.lists import get_all_contacts
+from hubspot.contacts.properties import Property, create_property, NumberProperty
 
 
 class AsteriskListener:
@@ -29,7 +30,7 @@ class AsteriskListener:
 
     def init_lisener(self):
         """
-        function to initialize all the ARI configuration and create a listening event
+        Function to initialize all the ARI configuration and create a listening event
         """
         self.obtain_ari_config()
         self.client.on_channel_event('StasisStart', self.stasis_start_cb)
@@ -41,7 +42,7 @@ class AsteriskListener:
 
     def init_logger(self):
         """
-        function to initialize logging
+        Function to initialize logging
         """
         self.file_size = int(self.config.get('logfile-config', 'SIZE'))
         self.back_up_count = int(self.config.get('logfile-config', 'BACKUPCOUNT'))
@@ -71,7 +72,7 @@ class AsteriskListener:
 
     def obtain_ari_config(self):
         """
-        function to get the configuration of ARI from the config file
+        Function to get the configuration of ARI from the config file
         """
         try:
             self.logger.debug('Inside obtain_ari_config() function')      
@@ -89,7 +90,7 @@ class AsteriskListener:
 
     def obtain_db_config(self):
         """
-        function to obtain all the database configurations from the configuration file
+        Function to obtain all the database configurations from the configuration file
         """
         try:
             self.logger.debug('Inside obtain_db_config() function')
@@ -101,7 +102,13 @@ class AsteriskListener:
             self.lname = self.config.get('db-config','DB_FIELD_LNAME')
             self.email = self.config.get('db-config','DB_FIELD_EMAIL')
             self.phone = self.config.get('db-config','DB_FIELD_PHONE')
-            self.table = self.config.get('db-config','DB_TABLE_NAME')
+            self.group_table = self.config.get('db-config','DB_TABLE_NAME_FOR_GROUP')
+            self.email_table = self.config.get('db-config','DB_TABLE_NAME_FOR_EMAIL')
+            self.number_table = self.config.get('db-config','DB_TABLE_NAME_FOR_NUMBER')
+            self.ignore_table = self.config.get('db-config','DB_IGNORE_TABLE_NAME')
+            self.entryid = self.config.get('db-config','DB_FIELD_ENTRYID')
+            self.id = self.config.get('db-config','DB_FIELD_ID')
+            self.ignore_phone = self.config.get('db-config','DB_FIELD_IGNORE_NUMBER')
         except Exception as e:
             self.logger.exception("Error while obtaining DB configuration. {}".\
             format(e.message))
@@ -115,6 +122,7 @@ class AsteriskListener:
             self.logger.debug('Inside obtain_hubspot_config() function')
             self.api_key = self.config.get('hubspot-config', 'HUBSPOT_API_KEY')
             self.app_name = self.config.get('hubspot-config','APP_NAME')
+            self.hubspot_property_label = self.config.get('hubspot-config','CHANNEL_ID_PROPERTY_LABEL')
         except Exception as e:
             self.logger.exception("Error while obtaining Hubspot configuration. {}".\
             format(e.message))    
@@ -122,50 +130,111 @@ class AsteriskListener:
     
     def fetch_from_db(self):
         """
-        fetch from the database for the email and all the other details based on 
-        the incoming name and number 
+        Fetch from the database for the email and all the other details based on 
+        the number 
         """
         try:
-            self.logger.debug('Inside fetch_from_db() function')
-            self.obtain_db_config()
-            connection = mariadb.connect(host = self.db_host, user = self.db_username, \
-            password = self.db_password, database = self.db_name)
-            sql_command = "SELECT id,{fname},{lname},{email} from {table} where {pnumber} = \
-            {phone_number}".format(phone_number=self.phone_number,fname=self.\
-            fname,lname=self.lname,email=self.email,pnumber=self.phone,table=self.table)
-            crsr = connection.cursor()
-            crsr.execute(sql_command)
-            ans= crsr.fetchone() 
-            if len(ans):
-                self.vid = ans[0]
-                self.first_name = ans[1]
-                self.last_name = ans[2]
-                self.email = ans[3] 
+            label = 'unassigned'
+            time_label = datetime.now().strftime('%Y%m%d%H%M%S%f')
+            email_label = label + '@' + time_label + '.com'
+            sql_command = 'select {entryid} from {table} where {number} = {pnumber}'.\
+            format(pnumber=self.phone_number,entryid=self.entryid,table=self.number_table,\
+            number=self.phone)
+            self.crsr.execute(sql_command)
+            ans = self.crsr.fetchone()
+            if not ans:
+                self.first_name = str(self.phone_number)
+                self.last_name = label
+                self.email = email_label
+                raise Exception('User With Number : {} Does Not Exist in Database'.\
+                format(self.phone_number))
             else:
-                raise Exception('User Does Not Exist in Database') 
+                entry_id = ans[0]
+                sql_command = 'select {fname},{lname} from {table} where {id} = {entry_id};'.\
+                format(entry_id=entry_id,fname=self.fname,lname=self.lname,table=self.group_table,\
+                id=self.id)
+                self.crsr.execute(sql_command)
+                answer = self.crsr.fetchone()
+                self.first_name = answer[0] if (answer[0] is not None and ans[0] != '') else \
+                str(self.phone_number)
+                self.last_name = answer[1] if (answer[1] is not None and ans[0] != '') else label
+                sql_command = 'select {email} from {table} where {entryid} = {id};'.\
+                format(entryid=self.entryid,table=self.email_table,email=self.email,id=entry_id)
+                self.crsr.execute(sql_command)
+                answer = self.crsr.fetchone()
+                self.email = answer[0] if (answer[0] is not None and ans[0] != '') else email_label
         except Exception as e:
             self.logger.exception("Error fetching user data from DB. {}".format(e.message))
 
+
+    def check_ignore_table(self):
+        """
+        Functin to check if the calling number is inside the ignore contact table specified 
+        in the config file.
+        If present, ignores the call to saving the contact to hubspot api
+        else, fetches the contact from the database saves it to the 
+        hubspot account configured in the conf file  
+        """
+        try:
+            self.logger.debug('Inside check_ignore_table() function')
+            self.obtain_db_config()
+            self.connection = mariadb.connect(host = self.db_host, user = self.db_username, \
+            password = self.db_password, database = self.db_name)
+            sql_command = "SELECT {pnumber} from {table} where {pnumber} = \
+            {phone_number}".format(phone_number=self.phone_number,pnumber=self.ignore_phone,\
+            table=self.ignore_table)
+            self.crsr = self.connection.cursor()
+            self.crsr.execute(sql_command)
+            ans = self.crsr.fetchall()
+            if not ans:
+                self.fetch_from_db()
+                self.save_contact_to_hub() 
+            else:
+                raise Exception('Ignoring Contact {number} because it\'s in table {table}.'.\
+                format(number=self.phone_number,table=self.ignore_table)) 
+        except Exception as e:
+            self.logger.exception("Error fetching number from the ignore contact table. {}".\
+            format(e.message))
+
     def save_contact_to_hub(self):
         """
-        calls hubspot api and created a contact (if not exists) and saves it to 
+        Calls hubspot api and created a contact (if not exists) and saves it to 
         the HubSpot Account registered 
         """
         try:
             self.logger.debug('Inside save_contact_to_hub() function')
+            self.vid = self.phone_number
             self.logger.debug("Saving contact to hub {}{}{}{}{}".format(self.vid,self.first_name,\
             self.last_name,self.email,self.phone_number))
-            self.obtain_hubspot_config()
-            authentication_key = APIKey(self.api_key)
-            with PortalConnection(authentication_key, self.app_name) as connection:
+            with PortalConnection(self.authentication_key, self.app_name) as connection:
+                for contact in get_all_contacts(connection,property_names=('phone',)):
+                    if contact.properties['phone'] == self.phone_number:
+                        raise Exception('Contact {} already saved in hubspot'.\
+                        format(self.phone_number))
                 contact = []
                 contact.append(Contact(vid=self.vid, email_address=self.email, \
                 properties={u'lastname':self.last_name, u'firstname': \
-                self.first_name,u'phone':str(self.phone_number),},))
+                self.first_name,u'phone':str(self.phone_number),u'channelid':str(self.channel_id)},))
                 save_contacts(contact,connection)
         except Exception as e:
             self.logger.exception("Error saving contact to Hubspot. {}".format(e.message))
     
+    def create_hubspot_property(self):
+        """
+        To create the property called channel id to save the channel id of the
+        caller to hubspot contacts
+        """
+        try:
+            self.logger.debug('Inside create_hubspot_property() function')
+            self.obtain_hubspot_config()
+            self.authentication_key = APIKey(self.api_key)
+            with PortalConnection(self.authentication_key, self.app_name) as connection:
+                property_ = NumberProperty(name='channelid',label=self.hubspot_property_label,\
+                description='channel id of asterisk call',field_widget=u'text',\
+                group_name=u'contactinformation')
+                prop = create_property(property_,connection)
+        except Exception as e:
+            self.logger.exception("Error while creating Hubspot property. {}".format(e.message))
 
     def stasis_end_cb(self,channel, ev):
         """
@@ -192,8 +261,8 @@ class AsteriskListener:
             self.phone_number = self.channel.get('caller').get('number')
             self.channel_id = self.channel.get('id')
             self.logger.debug('Call from Phone Number {}'.format(self.phone_number))
-            self.fetch_from_db()
-            self.save_contact_to_hub() 
+            self.create_hubspot_property()
+            self.check_ignore_table()
             """
             continue back to the dial plan
             """
