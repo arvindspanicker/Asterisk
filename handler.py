@@ -155,9 +155,11 @@ class AsteriskListener:
                 id=self.id)
                 self.crsr.execute(sql_command)
                 answer = self.crsr.fetchone()
+
                 self.first_name = answer[0] if (answer[0] is not None and ans[0] != '') else \
                 str(self.phone_number)
                 self.last_name = answer[1] if (answer[1] is not None and ans[0] != '') else label
+
                 sql_command = 'select {email} from {table} where {entryid} = {id};'.\
                 format(entryid=self.entryid,table=self.email_table,email=self.email,id=entry_id)
                 self.crsr.execute(sql_command)
@@ -208,7 +210,8 @@ class AsteriskListener:
             self.last_name,self.email,self.phone_number))
             with PortalConnection(self.authentication_key, self.app_name) as connection:
                 for contact in get_all_contacts(connection,property_names=('phone',)):
-                    if contact.properties['phone'] == self.phone_number:
+                    if 'unassigned' in contact.email_address and \
+                    'unassigned' in self.email:
                         raise Exception('Contact {} already saved in hubspot'.\
                         format(self.phone_number))
                 contact = []

@@ -28,7 +28,8 @@ exten => 3003,1,NoOp()
 
 
 </b> Note: External contact details should be stored in contat manager - external <b>
-
+<b> Also, the contacts that are not saved in the asterisk will be saved with 'unassigned' <br>
+for first name, last name and email since the api doesn't allow empty strings </b>
 
 To make sure the statis up and running, try the following command from the system
 where the python script would be running :
