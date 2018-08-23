@@ -27,6 +27,9 @@ exten => 3003,1,NoOp()
  same =>      n,Hangup()
 
 
+</b> Note: External contact details should be stored in contat manager - external <b>
+
+
 To make sure the statis up and running, try the following command from the system
 where the python script would be running :
 
@@ -62,11 +65,19 @@ DB_FIELD_FNAME - Field name specified in the database for the first name of the 
 DB_FIELD_LNAME - Field name specified in the database for the last name of the user
 DB_FIELD_EMAIL - Field name specified in the database for the email of the user
 DB_FIELD_PHONE - Field name specified in the database for the account of the user
-DB_TABLE_NAME - Table name of the saved contacts in the database 
+DB_FIELD_ENTRYID=entryid
+DB_FIELD_ID - Field name specified in the database for the id label for the table that stores the name details
+DB_FIELD_IGNORE_NUMBER - Field name specified in the database for the number field stored for ignore numbers
+DB_TABLE_NAME_FOR_GROUP - Table name specified in the database for group entries 
+DB_TABLE_NAME_FOR_NUMBER - Table name specified in the database for number details 
+DB_TABLE_NAME_FOR_EMAIL - Table name specified in the database for the email details 
+DB_IGNORE_TABLE_NAME- Table name for the contacts for the hubspot to ignore
+ 
 
 Inside [hubspot-config]
 HUBSPOT_API_KEY - API Key optained from the Hubspot Account
 APP_NAME - App Name registered in the Hubspot Account
+CHANNEL_ID_PROPERTY_LABEL - Label for channel id for the contacts in hubspot
 
 Inside [logfile-config]
 SIZE - Size of the log file
