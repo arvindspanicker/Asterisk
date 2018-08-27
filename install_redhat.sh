@@ -7,9 +7,10 @@ tar xzf Python-2.7.10.tgz
 cd Python-2.7.10
 ./configure
 make altinstall
+export PYTHONPATH="/usr/bin/python2.7"
+
 yum --enablerepo=extras install -y  epel-release
 sudo yum install -y python-pip
-export PYTHONPATH="/usr/bin/python2.7"
 sudo yum install -y git
 pip install virtualenv
 cd $APP_DIRECTORY
