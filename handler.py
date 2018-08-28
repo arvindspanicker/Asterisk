@@ -246,7 +246,7 @@ class AsteriskListener:
         """
         try:
             self.logger.debug('Inside stasis_end_cb() function')
-            print "Channel %s just left our application" % self.channel.get('name')
+            print("Channel %s just left our application" % self.channel.get('name'))
         except Exception as e:
             self.logger.exception("Error while executing statis_end_cd. {}".format(e.message))
 
