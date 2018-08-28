@@ -38,7 +38,9 @@ wscat -c "ws://ipaddressofasterisk:8088/ari/events?api_key=<username_of_register
 </pre>
 
 <h2>Installing the application</h2> (with all dependencies)
-Execute  <b>./install.sh</b> to install the application
+Execute  <b>./install_redhat.sh</b> to install the application (for redhat operating system - asterisk)
+<b>Or<b>
+Execute  <b>./install_ubuntu-16.04.sh</b> to install the application (for Ubuntu-16.04 operating system)
 
 <h3>Running the application</h3>
 Execute <b>./run.sh</b> to run the application
